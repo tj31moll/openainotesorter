@@ -9,15 +9,15 @@ from sklearn.naive_bayes import MultinomialNB
 nlp = spacy.load('en_core_web_sm')
 
 # Define a function to extract and organize the data
-def extract_data(text, categories=None):
+def extract_data(text, clf=None):
     # Initialize an empty dictionary to store the data
     data = {}
 
     # Parse the text using spacy
     doc = nlp(text)
 
-    # If categories were not specified, determine them automatically using Scikit-learn
-    if categories is None:
+    # If the classifier is not provided, train a new one
+    if clf is None:
         # Extract the entity text and label
         X = [ent.text.strip() for ent in doc.ents]
 
@@ -28,8 +28,8 @@ def extract_data(text, categories=None):
         clf = MultinomialNB()
         clf.fit(X_train, y_train)
 
-        # Use the trained classifier to predict the category of each entity
-        categories = clf.predict(X_train)
+    # Use the trained classifier to predict the category of each entity
+    categories = clf.predict(X_train)
 
     # Loop through the entities in the document
     for i, ent in enumerate(doc.ents):
@@ -43,10 +43,10 @@ def extract_data(text, categories=None):
             data[category_label] = []
         data[category_label].append(text)
 
-    # Return the organized data
-    return data
+    # Return the organized data and the trained classifier
+    return data, clf
 
-# # Define a function to create a OneNote notebook and section
+# Define a function to create a OneNote notebook and section
 def create_notebook(api_key, notebook_name, category_labels):
     # Create a OneNote client using the API key
     client = onenote.OneNoteClient(api_key)
@@ -65,7 +65,6 @@ def create_notebook(api_key, notebook_name, category_labels):
 
     # Return the notebook and category IDs
     return notebook['id'], category_ids
-]
 
 # Define a function to handle UI input
 def handle_ui_input(api_key):
@@ -80,16 +79,19 @@ def handle_ui_input(api_key):
             text = f.read()
 
         # Extract the data and print it to the console
-        data = extract_data(text)
+        data, clf = extract_data(text)
 
         # Create a new OneNote page for each category and append the items to the page
-        notebook_id, section_id = create_notebook(api_key, notebook_name)
+        notebook_id, section_id = create_notebook(api_key, notebook_name, list(set(clf.classes_)))
         for category, items in data.items():
             page_title = category
             page_content = '<ul>' + ''.join([f'<li>{item}</li>' for item in items]) + '</ul>'
             onenote.create_page(api_key, page_title, page_content, section_id)
 
         print('Data successfully added to OneNote!')
+
+# Set the OneNote API key and notebook name
+
 
 # Set the OneNote API key and notebook name
 api_key = 'YOUR_API_KEY'
