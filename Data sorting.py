@@ -1,11 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog
+import onenote
 import spacy
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
-import onenote
 
-# Load the spaCy model
+# Load the spacy model
 nlp = spacy.load('en_core_web_sm')
 
 # Define a function to extract and organize the data
@@ -13,7 +13,7 @@ def extract_data(text, categories=None):
     # Initialize an empty dictionary to store the data
     data = {}
 
-    # Parse the text using spaCy
+    # Parse the text using spacy
     doc = nlp(text)
 
     # If categories were not specified, determine them automatically using Scikit-learn
@@ -46,7 +46,7 @@ def extract_data(text, categories=None):
     # Return the organized data
     return data
 
-# Define a function to handle UI input
+# Define a function to handle UI input and append data to OneNote
 def handle_ui_input():
     # Create a Tkinter file dialog to choose a file to open
     root = tk.Tk()
@@ -61,17 +61,19 @@ def handle_ui_input():
         # Extract the data
         data = extract_data(text)
 
-        # Add the data to OneNote
-        notebook_name = "My Notebook"
-        section_name = "My Section"
-        page_name = "My Page"
-        on = onenote.OneNote()
-        on.navigate_to(notebook_name=notebook_name, section_name=section_name, page_name=page_name)
+        # Connect to OneNote and get the specified notebook
+        onenote_client = onenote.OneNoteClient()
+        notebook = onenote_client.get_notebook('Notebook Name')  # Replace with your notebook name
 
+        # Loop through the categories in the data and create subpages for each one
         for category in data:
-            on.create_page(notebook_name=notebook_name, section_name=section_name, page_name=category)
+            category_page = notebook.create_page(category)
+
+            # Loop through the items in the category and append them to the subpage
             for item in data[category]:
-                on.add_page_content(notebook_name=notebook_name, section_name=section_name, page_name=category, content=item)
+                category_page.append(item)
+
+        print('Data appended to OneNote.')
 
 # Call the UI input function
 handle_ui_input()
