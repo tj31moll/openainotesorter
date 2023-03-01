@@ -46,8 +46,8 @@ def extract_data(text, categories=None):
     # Return the organized data
     return data
 
-# Define a function to create a OneNote notebook and section
-def create_notebook(api_key, notebook_name):
+# # Define a function to create a OneNote notebook and section
+def create_notebook(api_key, notebook_name, category_labels):
     # Create a OneNote client using the API key
     client = onenote.OneNoteClient(api_key)
 
@@ -57,8 +57,15 @@ def create_notebook(api_key, notebook_name):
     # Create a new section in the notebook
     section = client.create_section(notebook['id'], 'Section 1')
 
-    # Return the notebook and section IDs
-    return notebook['id'], section['id']
+    # Create subpages for each category in the section
+    category_ids = {}
+    for label in category_labels:
+        page = client.create_page(section['id'], label)
+        category_ids[label] = page['id']
+
+    # Return the notebook and category IDs
+    return notebook['id'], category_ids
+]
 
 # Define a function to handle UI input
 def handle_ui_input(api_key):
