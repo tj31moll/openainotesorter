@@ -46,8 +46,22 @@ def extract_data(text, categories=None):
     # Return the organized data
     return data
 
-# Define a function to handle UI input and append data to OneNote
-def handle_ui_input():
+# Define a function to create a OneNote notebook and section
+def create_notebook(api_key, notebook_name):
+    # Create a OneNote client using the API key
+    client = onenote.OneNoteClient(api_key)
+
+    # Create a new notebook
+    notebook = client.create_notebook(notebook_name)
+
+    # Create a new section in the notebook
+    section = client.create_section(notebook['id'], 'Section 1')
+
+    # Return the notebook and section IDs
+    return notebook['id'], section['id']
+
+# Define a function to handle UI input
+def handle_ui_input(api_key):
     # Create a Tkinter file dialog to choose a file to open
     root = tk.Tk()
     root.withdraw()
@@ -58,22 +72,21 @@ def handle_ui_input():
         with open(file_path, 'r') as f:
             text = f.read()
 
-        # Extract the data
+        # Extract the data and print it to the console
         data = extract_data(text)
 
-        # Connect to OneNote and get the specified notebook
-        onenote_client = onenote.OneNoteClient()
-        notebook = onenote_client.get_notebook('Notebook Name')  # Replace with your notebook name
+        # Create a new OneNote page for each category and append the items to the page
+        notebook_id, section_id = create_notebook(api_key, notebook_name)
+        for category, items in data.items():
+            page_title = category
+            page_content = '<ul>' + ''.join([f'<li>{item}</li>' for item in items]) + '</ul>'
+            onenote.create_page(api_key, page_title, page_content, section_id)
 
-        # Loop through the categories in the data and create subpages for each one
-        for category in data:
-            category_page = notebook.create_page(category)
+        print('Data successfully added to OneNote!')
 
-            # Loop through the items in the category and append them to the subpage
-            for item in data[category]:
-                category_page.append(item)
-
-        print('Data appended to OneNote.')
+# Set the OneNote API key and notebook name
+api_key = 'YOUR_API_KEY'
+notebook_name = 'Entity Recognition Data'
 
 # Call the UI input function
-handle_ui_input()
+handle_ui_input(api_key)
