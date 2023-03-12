@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Upload</title>
+	<title>Entity Recognition Upload</title>
 </head>
 <body>
-	<h1>Upload File</h1>
-	<form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
-		<label for="file">Select a file:</label>
-		<input type="file" name="file" id="file">
+	<h1>Upload a Text File</h1>
+	<p>Select a file to upload or paste text in the box below:</p>
+	<form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+		<textarea name="text" rows="10" cols="50"></textarea>
+		<br>
+		<br>
+		<input type="file" name="file">
+		<br>
 		<br>
 		<input type="submit" value="Upload">
 	</form>
